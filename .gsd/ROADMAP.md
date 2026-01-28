@@ -25,7 +25,7 @@
 ---
 
 ### Phase 2: CSV Parsing & Data Model
-**Status**: ⬜ Not Started
+**Status**: ✅ Done
 **Objective**: Implementacija parsiranja Revolut Trading Statement CSV
 **Deliverables**:
 - TypeScript tipi za transakcije (Sale, Dividend)
