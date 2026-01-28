@@ -37,7 +37,7 @@
 ---
 
 ### Phase 3: UI Implementation
-**Status**: ⬜ Not Started
+**Status**: ✅ Done
 **Objective**: Implementacija uporabniškega vmesnika
 **Deliverables**:
 - Komponenta za upload datoteke (drag & drop)

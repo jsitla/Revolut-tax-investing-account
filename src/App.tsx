@@ -1,4 +1,11 @@
+import { useState } from 'react'
+import FileUploader from './components/FileUploader'
+import Dashboard from './components/Dashboard'
+import { RevolutExport } from './types/revolut'
+
 function App() {
+    const [data, setData] = useState<RevolutExport | null>(null)
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
             <div className="container mx-auto px-4 py-8">
@@ -11,12 +18,12 @@ function App() {
                     </p>
                 </header>
 
-                <main className="max-w-2xl mx-auto">
-                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 shadow-xl">
-                        <p className="text-center text-slate-300">
-                            Aplikacija se nalaga...
-                        </p>
-                    </div>
+                <main className="max-w-4xl mx-auto">
+                    {!data ? (
+                        <FileUploader onUpload={setData} />
+                    ) : (
+                        <Dashboard data={data} onReset={() => setData(null)} />
+                    )}
                 </main>
             </div>
         </div>
