@@ -14,7 +14,7 @@
 ## Phases
 
 ### Phase 1: Project Setup & Foundation
-**Status**: ⬜ Not Started
+**Status**: ✅ Done
 **Objective**: Postavitev razvojnega okolja z React + Vite + Tailwind CSS
 **Deliverables**:
 - Inicializiran Vite projekt z React in TypeScript
