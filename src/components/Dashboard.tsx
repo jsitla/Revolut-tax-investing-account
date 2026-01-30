@@ -6,6 +6,10 @@ import { saveAs } from 'file-saver';
 import YearSelector from './YearSelector';
 import SummaryCards from './SummaryCards';
 import { TradesTable, DividendsTable } from './Tables';
+import XMLPreview from './XMLPreview';
+import * as Tabs from '@radix-ui/react-tabs';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FileDown, Table, PieChart } from 'lucide-react';
 
 interface DashboardProps {
     data: RevolutExport;
@@ -64,15 +68,28 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
         saveAs(blob, `Doh-Div-${selectedYear}.xml`);
     };
 
+    const kdvpXml = useMemo(() => generateKDVPXml(filteredData.trades, selectedYear), [filteredData.trades, selectedYear]);
+    const divXml = useMemo(() => generateDivXml(filteredData.dividends, selectedYear), [filteredData.dividends, selectedYear]);
+
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-white">Pregled leta {selectedYear}</h2>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+        >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 className="text-3xl font-black text-white tracking-tight">Pregled leta {selectedYear}</h2>
+                    <p className="text-slate-400 text-sm mt-1">Preglejte transakcije pred izvozom za FURS.</p>
+                </div>
                 <button
                     onClick={onReset}
-                    className="text-slate-400 hover:text-white hover:underline transition-colors text-sm"
+                    className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium bg-slate-800/50 px-4 py-2 rounded-lg border border-slate-700 hover:border-slate-600"
                 >
-                    ← Naloži drugo datoteko
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                    </svg>
+                    Naloži drugo datoteko
                 </button>
             </div>
 
@@ -82,41 +99,124 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                 onSelect={setSelectedYear}
             />
 
-            <SummaryCards
-                tradeCount={filteredData.trades.length}
-                totalPnL={totals.totalPnL}
-                dividendCount={filteredData.dividends.length}
-                totalDividends={totals.totalDividends}
-                totalTax={totals.totalTax}
-                currency={totals.currency}
-            />
+            <Tabs.Root defaultValue="summary" className="w-full">
+                <Tabs.List className="flex gap-2 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50 mb-8 overflow-x-auto">
+                    <Tabs.Trigger
+                        value="summary"
+                        className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-400 hover:text-slate-200"
+                    >
+                        <PieChart className="w-4 h-4" />
+                        Povzetek
+                    </Tabs.Trigger>
+                    <Tabs.Trigger
+                        value="trades"
+                        className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-slate-400 hover:text-slate-200"
+                    >
+                        <Table className="w-4 h-4" />
+                        Prodaje ({filteredData.trades.length})
+                    </Tabs.Trigger>
+                    <Tabs.Trigger
+                        value="dividends"
+                        className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400 hover:text-slate-200"
+                    >
+                        <Table className="w-4 h-4" />
+                        Dividende ({filteredData.dividends.length})
+                    </Tabs.Trigger>
+                </Tabs.List>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <button
-                    onClick={handleDownloadKDVP}
-                    disabled={filteredData.trades.length === 0}
-                    className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 12l4.5 4.5m0 0l4.5-4.5M12 3v13.5" />
-                    </svg>
-                    Prenesi KDVP XML
-                </button>
-                <button
-                    onClick={handleDownloadDiv}
-                    disabled={filteredData.dividends.length === 0}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 12l4.5 4.5m0 0l4.5-4.5M12 3v13.5" />
-                    </svg>
-                    Prenesi Dividende XML
-                </button>
-            </div>
+                <AnimatePresence mode="wait">
+                    <Tabs.Content value="summary" key="summary">
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-8"
+                        >
+                            <SummaryCards
+                                tradeCount={filteredData.trades.length}
+                                totalPnL={totals.totalPnL}
+                                dividendCount={filteredData.dividends.length}
+                                totalDividends={totals.totalDividends}
+                                totalTax={totals.totalTax}
+                                currency={totals.currency}
+                            />
 
-            <TradesTable trades={filteredData.trades} />
-            <div className="h-8"></div> {/* Spacer */}
-            <DividendsTable dividends={filteredData.dividends} />
-        </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-6 bg-slate-800/40 rounded-2xl border border-slate-700/50 flex flex-col justify-between gap-6">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                            <FileDown className="w-5 h-5 text-emerald-400" />
+                                            Doh-KDVP (Kapitalski dobički)
+                                        </h3>
+                                        <p className="text-sm text-slate-400">XML datoteka za prijavo dobičkov od prodaje delnic.</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={handleDownloadKDVP}
+                                            disabled={filteredData.trades.length === 0}
+                                            className="grow bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-emerald-900/20"
+                                        >
+                                            Prenesi XML
+                                        </button>
+                                        <XMLPreview
+                                            xml={kdvpXml}
+                                            title={`Doh-KDVP ${selectedYear}`}
+                                            onDownload={handleDownloadKDVP}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="p-6 bg-slate-800/40 rounded-2xl border border-slate-700/50 flex flex-col justify-between gap-6">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                            <FileDown className="w-5 h-5 text-indigo-400" />
+                                            Doh-Div (Dividende)
+                                        </h3>
+                                        <p className="text-sm text-slate-400">XML datoteka za prijavo prejetih dividend.</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={handleDownloadDiv}
+                                            disabled={filteredData.dividends.length === 0}
+                                            className="grow bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-indigo-900/20"
+                                        >
+                                            Prenesi XML
+                                        </button>
+                                        <XMLPreview
+                                            xml={divXml}
+                                            title={`Doh-Div ${selectedYear}`}
+                                            onDownload={handleDownloadDiv}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </Tabs.Content>
+
+                    <Tabs.Content value="trades" key="trades">
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <TradesTable trades={filteredData.trades} />
+                        </motion.div>
+                    </Tabs.Content>
+
+                    <Tabs.Content value="dividends" key="dividends">
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <DividendsTable dividends={filteredData.dividends} />
+                        </motion.div>
+                    </Tabs.Content>
+                </AnimatePresence>
+            </Tabs.Root>
+        </motion.div>
     );
 }

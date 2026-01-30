@@ -3,16 +3,15 @@
 > **Last Updated**: 2026-01-28
 
 ## Current Position
-- **Milestone**: v1.0 MVP
-- **Phase**: 4 (XML Generation)
-- **Status**: Phase complete
+- **Milestone**: v1.1 UX & Logic Fix
+- **Phase**: 6 (UX Overhaul)
+- **Status**: ✅ Finalized & Verified
 
 ## What Was Accomplished
-- Completed Phase 1, 2, 3 & 4
-- Implemented robust XML generation for FURS
-- Integrated export functionality into Dashboard
+- Fixed XML Validation (translated elements to Slovenian, added EDP Envelope)
+- Overhauled UX with Tabs, Preview Modal, and Animations
+- Verified all logic with unit tests (8/8 passed)
 
 ## Next Steps
-1. Run `/plan 5` to plan Phase 5 (Final Polish)
-2. Add favicon and improve styles
-3. Prepare final walkthrough
+- Users can now safely import generated XMLs to eDavki
+- Project ready for production use

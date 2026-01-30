@@ -1,0 +1,8 @@
+Income from Sells,,,,,,,,,,
+Date acquired,Date sold,Symbol,Security name,ISIN,Country,Quantity,Cost basis,Gross proceeds,Gross PnL,Currency
+2024-01-15,2024-02-20,AAPL,Apple Inc.,US0378331005,US,10,1500.00,1800.00,300.00,EUR
+2024-03-10,2024-04-15,TSLA,Tesla Inc.,US88160R1014,US,5,1000.00,900.00,-100.00,EUR
+
+Dividends,,,,,,,,,,
+Date,Symbol,Security name,ISIN,Country,Gross amount,Withholding tax,Currency
+2024-03-01,AAPL,Apple Inc.,US0378331005,US,5.00,0.75,EUR

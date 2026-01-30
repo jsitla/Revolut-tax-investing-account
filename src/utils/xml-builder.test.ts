@@ -31,21 +31,21 @@ describe('xml-builder', () => {
 
     it('should generate valid KDVP XML structure', () => {
         const xml = generateKDVPXml([sampleTrade], 2024);
-        expect(xml).toContain('<ElectronicDeclaration');
-        expect(xml).toContain('<InventoryYear>2024</InventoryYear>');
-        expect(xml).toContain('<Isin>US67066G1040</Isin>');
-        expect(xml).toContain('<SecurityName>NVIDIA</SecurityName>');
-        expect(xml).toContain('<Value>269.84</Value>');
-        expect(xml).toContain('<Value>3654.20</Value>');
+        expect(xml).toContain('<edp:Envelope');
+        expect(xml).toContain('<LetoInventure>2024</LetoInventure>');
+        expect(xml).toContain('<ISIN>US67066G1040</ISIN>');
+        expect(xml).toContain('<Naziv>NVIDIA</Naziv>');
+        expect(xml).toContain('<Vrednost>269.84</Vrednost>');
+        expect(xml).toContain('<Vrednost>3654.20</Vrednost>');
     });
 
     it('should generate valid Dividend XML structure', () => {
         const xml = generateDivXml([sampleDiv], 2024);
-        expect(xml).toContain('<ElectronicDeclaration');
-        expect(xml).toContain('<Year>2024</Year>');
-        expect(xml).toContain('<Symbol>TSM</Symbol>');
-        expect(xml).toContain('<GrossAmount>16.92</GrossAmount>');
-        expect(xml).toContain('<WithholdingTax>3.55</WithholdingTax>');
+        expect(xml).toContain('<edp:Envelope');
+        expect(xml).toContain('<Leto>2024</Leto>');
+        expect(xml).toContain('<ISIN>US8740391003</ISIN>');
+        expect(xml).toContain('<ZnesekDividende>16.92</ZnesekDividende>');
+        expect(xml).toContain('<PlacanDavekIT>3.55</PlacanDavekIT>');
     });
 
     it('should encode special characters', () => {

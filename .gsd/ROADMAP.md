@@ -49,7 +49,7 @@
 ---
 
 ### Phase 4: XML Generation
-**Status**: ⬜ Not Started
+**Status**: ✅ Done
 **Objective**: Generiranje FURS-kompatibilnih XML datotek
 **Deliverables**:
 - Generator za Doh-KDVP XML (kapitalski dobički)
@@ -60,10 +60,15 @@
 ---
 
 ### Phase 5: Testing & Polish
-**Status**: ⬜ Not Started
+**Status**: ✅ Done
 **Objective**: Testiranje z realnimi podatki in končni popravki
 **Deliverables**:
 - Test z vzorčnimi Revolut CSV datotekami
 - Validacija XML proti FURS zahtevam
 - Navodila za uporabo v UI
 - Deployment na Vercel/Netlify
+
+---
+
+### Phase 6: UX Overhaul & Advanced Features
+**Status**: ✅ Done
