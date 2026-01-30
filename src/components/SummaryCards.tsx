@@ -24,51 +24,78 @@ export default function SummaryCards({
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-                <h3 className="text-slate-400 text-sm font-medium mb-2">Prodaje delnic</h3>
-                <div className="flex justify-between items-end">
-                    <div>
-                        <div className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {formatMoney(totalPnL)}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-1">Dobiček / Izguba</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {/* Sales Card */}
+            <div className={`glass-card p-6 rounded-3xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg hover:shadow-emerald-900/10 group relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <div className="w-24 h-24 bg-emerald-500 rounded-full blur-3xl"></div>
+                </div>
+                
+                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Prodaje delnic
+                </h3>
+                
+                <div className="flex flex-col gap-1">
+                    <div className={`text-3xl font-bold tracking-tight ${totalPnL >= 0 ? 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300' : 'text-red-400'}`}>
+                        {formatMoney(totalPnL)}
                     </div>
-                    <div className="text-right">
-                        <div className="text-xl font-bold text-white">{tradeCount}</div>
-                        <div className="text-xs text-slate-500">Transakcij</div>
+                    <div className="flex justify-between items-end mt-2">
+                        <span className="text-xs text-slate-500 font-medium bg-slate-800/50 px-2 py-1 rounded-full border border-slate-700/50">Dobiček / Izguba</span>
+                        <div className="text-right">
+                            <span className="text-lg font-bold text-white block leading-none">{tradeCount}</span>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Transakcij</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-                <h3 className="text-slate-400 text-sm font-medium mb-2">Dividende (Bruto)</h3>
-                <div className="flex justify-between items-end">
-                    <div>
-                        <div className="text-2xl font-bold text-blue-400">
-                            {formatMoney(totalDividends)}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-1">Skupaj prejeto</div>
+            {/* Dividends Card */}
+            <div className={`glass-card p-6 rounded-3xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg hover:shadow-blue-900/10 group relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <div className="w-24 h-24 bg-blue-500 rounded-full blur-3xl"></div>
+                </div>
+
+                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    Dividende (Bruto)
+                </h3>
+
+                <div className="flex flex-col gap-1">
+                    <div className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
+                        {formatMoney(totalDividends)}
                     </div>
-                    <div className="text-right">
-                        <div className="text-xl font-bold text-white">{dividendCount}</div>
-                        <div className="text-xs text-slate-500">Izplačil</div>
+                    <div className="flex justify-between items-end mt-2">
+                        <span className="text-xs text-slate-500 font-medium bg-slate-800/50 px-2 py-1 rounded-full border border-slate-700/50">Skupaj prejeto</span>
+                        <div className="text-right">
+                            <span className="text-lg font-bold text-white block leading-none">{dividendCount}</span>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Izplačil</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-                <h3 className="text-slate-400 text-sm font-medium mb-2">Davek v tujini</h3>
-                <div className="flex justify-between items-end">
-                    <div>
-                        <div className="text-2xl font-bold text-amber-400">
-                            {formatMoney(totalTax)}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-1">Plačano (Withholding)</div>
+            {/* Tax Card */}
+            <div className={`glass-card p-6 rounded-3xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg hover:shadow-amber-900/10 group relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <div className="w-24 h-24 bg-amber-500 rounded-full blur-3xl"></div>
+                </div>
+
+                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Davek v tujini
+                </h3>
+
+                <div className="flex flex-col gap-1">
+                    <div className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-300">
+                        {formatMoney(totalTax)}
                     </div>
-                    <div className="text-right">
-                        <div className="text-xl font-bold text-white">{((totalTax / totalDividends) * 100 || 0).toFixed(1)}%</div>
-                        <div className="text-xs text-slate-500">Efektivna stopnja</div>
+                    <div className="flex justify-between items-end mt-2">
+                        <span className="text-xs text-slate-500 font-medium bg-slate-800/50 px-2 py-1 rounded-full border border-slate-700/50">Withholding tax</span>
+                        <div className="text-right">
+                            <span className="text-lg font-bold text-white block leading-none">{((totalTax / totalDividends) * 100 || 0).toFixed(1)}%</span>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Efektivna stopnja</span>
+                        </div>
                     </div>
                 </div>
             </div>

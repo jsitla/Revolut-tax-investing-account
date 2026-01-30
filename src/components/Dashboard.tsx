@@ -1,15 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
 import { RevolutExport } from '../types/revolut';
 import { filterByYear } from '../utils/parser';
-import { generateKDVPXml, generateDivXml } from '../utils/xml-builder';
+import { generateKDVPXml, generateDivCsv, TaxpayerConfig, validateTaxpayerConfig } from '../utils/xml-builder';
 import { saveAs } from 'file-saver';
 import YearSelector from './YearSelector';
 import SummaryCards from './SummaryCards';
 import { TradesTable, DividendsTable } from './Tables';
 import XMLPreview from './XMLPreview';
+import TaxpayerForm, { loadTaxpayerConfig } from './TaxpayerForm';
 import * as Tabs from '@radix-ui/react-tabs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileDown, Table, PieChart } from 'lucide-react';
+import { FileDown, Table, PieChart, AlertTriangle } from 'lucide-react';
 
 interface DashboardProps {
     data: RevolutExport;
@@ -17,6 +18,9 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ data, onReset }: DashboardProps) {
+    // Taxpayer configuration
+    const [taxpayerConfig, setTaxpayerConfig] = useState<TaxpayerConfig>(() => loadTaxpayerConfig());
+
     // Extract available years from data
     const years = useMemo(() => {
         const tradeYears = data.trades.map(t => parseInt(t.dateSold.split('-')[0]));
@@ -40,64 +44,104 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
         return filterByYear(data, selectedYear);
     }, [data, selectedYear]);
 
-    // Calculate totals
     const totals = useMemo(() => {
         const totalPnL = filteredData.trades.reduce((sum, t) => sum + t.grossPnL, 0);
         const totalDividends = filteredData.dividends.reduce((sum, d) => sum + d.grossAmount, 0);
         const totalTax = filteredData.dividends.reduce((sum, d) => sum + d.withholdingTax, 0);
-        // Find most common currency or use first found (assuming single currency for simplicity in summary)
-        const currency = filteredData.trades[0]?.currency || filteredData.dividends[0]?.currency || 'EUR';
+
+        const currencies = new Set([
+            ...filteredData.trades.map(t => t.currency),
+            ...filteredData.dividends.map(d => d.currency)
+        ]);
+        const hasNonEur = Array.from(currencies).some(c => c && c !== 'EUR');
+        const primaryCurrency = filteredData.trades[0]?.currency || filteredData.dividends[0]?.currency || 'EUR';
 
         return {
             totalPnL,
             totalDividends,
             totalTax,
-            currency
+            currency: primaryCurrency,
+            hasNonEur
         };
     }, [filteredData]);
 
+    // Validate taxpayer config
+    const taxpayerErrors = useMemo(() => validateTaxpayerConfig(taxpayerConfig), [taxpayerConfig]);
+    const isTaxpayerValid = taxpayerErrors.length === 0;
+
     const handleDownloadKDVP = () => {
-        const xml = generateKDVPXml(filteredData.trades, selectedYear);
+        if (!isTaxpayerValid) {
+            alert('Prosim izpolnite vse obvezne podatke davčnega zavezanca:\n\n' + taxpayerErrors.join('\n'));
+            return;
+        }
+        const xml = generateKDVPXml(filteredData.trades, selectedYear, taxpayerConfig);
         const blob = new Blob([xml], { type: 'text/xml;charset=utf-8' });
         saveAs(blob, `Doh-KDVP-${selectedYear}.xml`);
     };
 
     const handleDownloadDiv = () => {
-        const xml = generateDivXml(filteredData.dividends, selectedYear);
-        const blob = new Blob([xml], { type: 'text/xml;charset=utf-8' });
-        saveAs(blob, `Doh-Div-${selectedYear}.xml`);
+        if (!isTaxpayerValid) {
+            alert('Prosim izpolnite vse obvezne podatke davčnega zavezanca:\n\n' + taxpayerErrors.join('\n'));
+            return;
+        }
+        // FURS uses CSV format for dividend reporting (not XML)
+        const csv = generateDivCsv(filteredData.dividends, selectedYear, taxpayerConfig);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        saveAs(blob, `Doh-Div-${selectedYear}.csv`);
     };
 
-    const kdvpXml = useMemo(() => generateKDVPXml(filteredData.trades, selectedYear), [filteredData.trades, selectedYear]);
-    const divXml = useMemo(() => generateDivXml(filteredData.dividends, selectedYear), [filteredData.dividends, selectedYear]);
+    const kdvpXml = useMemo(() => generateKDVPXml(filteredData.trades, selectedYear, taxpayerConfig), [filteredData.trades, selectedYear, taxpayerConfig]);
+    // FURS uses CSV format for dividend reporting
+    const divCsv = useMemo(() => generateDivCsv(filteredData.dividends, selectedYear, taxpayerConfig), [filteredData.dividends, selectedYear, taxpayerConfig]);
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-10 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-black text-white tracking-tight">Pregled leta {selectedYear}</h2>
-                    <p className="text-slate-400 text-sm mt-1">Preglejte transakcije pred izvozom za FURS.</p>
+            {/* Hero Section */}
+            <div className="relative py-10 md:py-16 text-center">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-indigo-500/20 rounded-full blur-[100px] -z-10"></div>
+                
+                <h1 className="text-5xl md:text-6xl font-black tracking-tight text-white mb-6">
+                    Poročanje <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">FURS {selectedYear}</span>
+                </h1>
+                
+                <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-8">
+                    Avtomatizirana priprava XML datotek za eDavke iz Revolut izpiskov.
+                    Hitro, varno in zanesljivo.
+                </p>
+
+                <div className="flex justify-center gap-4">
+                     <button
+                        onClick={onReset}
+                        className="group flex items-center gap-2 text-slate-300 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-6 py-2.5 rounded-full border border-white/10 backdrop-blur-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 group-hover:-translate-x-1 transition-transform">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Naloži drugo datoteko
+                    </button>
                 </div>
-                <button
-                    onClick={onReset}
-                    className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium bg-slate-800/50 px-4 py-2 rounded-lg border border-slate-700 hover:border-slate-600"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                    </svg>
-                    Naloži drugo datoteko
-                </button>
             </div>
 
-            <YearSelector
-                years={years}
-                selectedYear={selectedYear}
-                onSelect={setSelectedYear}
-            />
+            <div className="flex justify-center">
+                 <YearSelector
+                    years={years}
+                    selectedYear={selectedYear}
+                    onSelect={setSelectedYear}
+                />
+            </div>
+
+            {/* Taxpayer Information Form */}
+            <div className="max-w-3xl mx-auto">
+                <TaxpayerForm
+                    config={taxpayerConfig}
+                    onChange={setTaxpayerConfig}
+                />
+            </div>
+
 
             <Tabs.Root defaultValue="summary" className="w-full">
                 <Tabs.List className="flex gap-2 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50 mb-8 overflow-x-auto">
@@ -133,6 +177,25 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                             transition={{ duration: 0.2 }}
                             className="space-y-8"
                         >
+                            {totals.hasNonEur && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-4 items-start mb-8"
+                                >
+                                    <div className="bg-amber-500/20 p-2 rounded-lg">
+                                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-amber-500 font-bold text-sm">Opozorilo o valuti ({totals.currency})</h4>
+                                        <p className="text-amber-500/80 text-xs mt-1 leading-relaxed">
+                                            Zaznane so transakcije v tuji valuti. FURS zahteva, da so vse vrednosti v XML datoteki preračunane v **EUR** po tečaju Banke Slovenije na dan posla.
+                                            Ta aplikacija trenutno izvozi vrednosti neposredno iz Revolut izpiska. Pred oddajo vrednosti preverite in po potrebi ročno popravite v eDavkih.
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            )}
+
                             <SummaryCards
                                 tradeCount={filteredData.trades.length}
                                 totalPnL={totals.totalPnL}
@@ -141,6 +204,16 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                                 totalTax={totals.totalTax}
                                 currency={totals.currency}
                             />
+
+                            {!isTaxpayerValid && (
+                                <div className="p-4 bg-amber-900/30 border border-amber-600/50 rounded-xl flex items-start gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-amber-200 font-medium">Manjkajoči podatki davčnega zavezanca</p>
+                                        <p className="text-amber-300/70 text-sm mt-1">Prosim izpolnite obrazec "Podatki davčnega zavezanca" zgoraj, da boste lahko prenesli veljavne XML datoteke.</p>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="p-6 bg-slate-800/40 rounded-2xl border border-slate-700/50 flex flex-col justify-between gap-6">
@@ -154,7 +227,7 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={handleDownloadKDVP}
-                                            disabled={filteredData.trades.length === 0}
+                                            disabled={filteredData.trades.length === 0 || !isTaxpayerValid}
                                             className="grow bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-emerald-900/20"
                                         >
                                             Prenesi XML
@@ -173,18 +246,18 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                                             <FileDown className="w-5 h-5 text-indigo-400" />
                                             Doh-Div (Dividende)
                                         </h3>
-                                        <p className="text-sm text-slate-400">XML datoteka za prijavo prejetih dividend.</p>
+                                        <p className="text-sm text-slate-400">CSV datoteka za prijavo prejetih dividend.</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={handleDownloadDiv}
-                                            disabled={filteredData.dividends.length === 0}
+                                            disabled={filteredData.dividends.length === 0 || !isTaxpayerValid}
                                             className="grow bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-indigo-900/20"
                                         >
-                                            Prenesi XML
+                                            Prenesi CSV
                                         </button>
                                         <XMLPreview
-                                            xml={divXml}
+                                            xml={divCsv}
                                             title={`Doh-Div ${selectedYear}`}
                                             onDownload={handleDownloadDiv}
                                         />

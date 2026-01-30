@@ -14,6 +14,17 @@ Date,Symbol,Security name,ISIN,Country,Gross amount,Withholding tax,Net Amount,C
 2024-03-01,,,,-,,-0.01,,USD
 `;
 
+// Alternative format with "Dividends" header
+const SAMPLE_CSV_ALT = `
+Income from Sells,,,,,,,,,,
+Date acquired,Date sold,Symbol,Security name,ISIN,Country,Quantity,Cost basis,Gross proceeds,Gross PnL,Currency
+2024-01-15,2024-02-20,AAPL,Apple Inc.,US0378331005,US,10,1500.00,1800.00,300.00,EUR
+
+Dividends,,,,,,,,,,
+Date,Symbol,Security name,ISIN,Country,Gross amount,Withholding tax,Currency
+2024-03-01,AAPL,Apple Inc.,US0378331005,US,5.00,0.75,EUR
+`;
+
 describe('parseRevolutExport', () => {
     it('should parse trades correctly', () => {
         const result = parseRevolutExport(SAMPLE_CSV);
@@ -36,7 +47,7 @@ describe('parseRevolutExport', () => {
         expect(msft.dateSold).toBe('2023-12-01');
     });
 
-    it('should parse dividends correctly', () => {
+    it('should parse dividends correctly from Other income & fees', () => {
         const result = parseRevolutExport(SAMPLE_CSV);
         expect(result.dividends).toHaveLength(2);
 
@@ -46,6 +57,24 @@ describe('parseRevolutExport', () => {
         expect(tsm.withholdingTax).toBe(3.55);
         expect(tsm.netAmount).toBe(13.37);
         expect(tsm.currency).toBe('EUR');
+    });
+
+    it('should parse dividends correctly from Dividends section', () => {
+        const result = parseRevolutExport(SAMPLE_CSV_ALT);
+        expect(result.dividends).toHaveLength(1);
+
+        const aapl = result.dividends[0];
+        expect(aapl.symbol).toBe('AAPL');
+        expect(aapl.grossAmount).toBe(5.00);
+        expect(aapl.withholdingTax).toBe(0.75);
+        expect(aapl.isin).toBe('US0378331005');
+    });
+
+    it('should skip negative amounts (fees)', () => {
+        const result = parseRevolutExport(SAMPLE_CSV);
+        // The -0.01 fee row should be skipped
+        const negativeAmounts = result.dividends.filter(d => d.grossAmount < 0);
+        expect(negativeAmounts).toHaveLength(0);
     });
 
     it('should filter by year', () => {
