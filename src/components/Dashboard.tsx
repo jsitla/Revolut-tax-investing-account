@@ -10,7 +10,7 @@ import XMLPreview from './XMLPreview';
 import TaxpayerForm, { loadTaxpayerConfig } from './TaxpayerForm';
 import * as Tabs from '@radix-ui/react-tabs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileDown, Table, PieChart, AlertTriangle } from 'lucide-react';
+import { FileDown, Table, PieChart, AlertTriangle, Shield, Info, FlaskConical } from 'lucide-react';
 
 interface DashboardProps {
     data: RevolutExport;
@@ -123,6 +123,18 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                         </svg>
                         Naloži drugo datoteko
                     </button>
+                </div>
+
+                {/* Disclaimer badges */}
+                <div className="flex flex-wrap justify-center gap-3 mt-8">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                        <Shield className="w-4 h-4 text-emerald-400" />
+                        <span className="text-emerald-400 text-sm font-medium">Vsi podatki ostanejo v vašem brskalniku</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                        <FlaskConical className="w-4 h-4 text-amber-400" />
+                        <span className="text-amber-400 text-sm font-medium">Beta verzija</span>
+                    </div>
                 </div>
             </div>
 
@@ -290,6 +302,30 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                     </Tabs.Content>
                 </AnimatePresence>
             </Tabs.Root>
+
+            {/* Footer disclaimer */}
+            <div className="mt-16 p-6 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
+                <div className="flex flex-col md:flex-row gap-6 text-sm text-slate-400">
+                    <div className="flex items-start gap-3 flex-1">
+                        <div className="bg-emerald-500/20 p-2 rounded-lg shrink-0">
+                            <Shield className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h4 className="text-emerald-400 font-semibold mb-1">Zasebnost podatkov</h4>
+                            <p className="leading-relaxed">Vsa obdelava poteka lokalno v vašem brskalniku. Vaši podatki se nikoli ne pošiljajo na naše strežnike - ne shranjujemo in ne obdelujemo vaših finančnih podatkov.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3 flex-1">
+                        <div className="bg-amber-500/20 p-2 rounded-lg shrink-0">
+                            <Info className="w-4 h-4 text-amber-400" />
+                        </div>
+                        <div>
+                            <h4 className="text-amber-400 font-semibold mb-1">Omejitev odgovornosti</h4>
+                            <p className="leading-relaxed">Za vsebinske napake ne odgovarjamo. Pred oddajo na eDavke vedno preverite pravilnost podatkov. To orodje je v <strong className="text-amber-400">testni fazi</strong> - uporaba na lastno odgovornost.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </motion.div>
     );
 }
