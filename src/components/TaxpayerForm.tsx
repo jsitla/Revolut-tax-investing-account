@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { TaxpayerConfig, validateTaxpayerConfig, defaultTaxpayerConfig } from '../utils/xml-builder';
 import { motion } from 'framer-motion';
-import { AlertCircle, Info } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface TaxpayerFormProps {
     config: TaxpayerConfig;
@@ -55,9 +55,15 @@ export default function TaxpayerForm({ config, onChange }: TaxpayerFormProps) {
             className="glass-panel rounded-3xl overflow-hidden"
         >
             <div className="p-6">
-                <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-4 mb-6 flex gap-3 text-sm text-blue-200">
-                    <Info className="w-5 h-5 text-blue-400 shrink-0" />
-                    <p>Ti podatki se zapišejo v glavo XML datoteke. FURS jih potrebuje za identifikacijo zavezanca. Podatki se shranijo samo v vašem brskalniku.</p>
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+                    <div className="flex gap-3 items-start">
+                        <AlertCircle className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold text-amber-300 mb-2"> Pomembno: Vnesite pravilne podatke!</p>
+                            <p className="text-amber-200/90 text-sm leading-relaxed">Če podatki ne bodo pravilni (davčna številka, ime, naslov), <strong className="text-amber-100">bo FURS zavrnil vašo vlogo</strong>. Preverite, da se podatki ujemajo z vašimi uradnimi podatki pri FURS.</p>
+                            <p className="text-slate-400 text-xs mt-2">Podatki se shranijo samo v vašem brskalniku.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -171,3 +177,6 @@ function InputField({ label, value, onChange, placeholder, type = 'text', maxLen
         </div>
     );
 }
+
+
+

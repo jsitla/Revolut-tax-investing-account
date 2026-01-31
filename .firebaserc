@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "m-ai-webpage"
+  },
+  "targets": {
+    "m-ai-webpage": {
+      "hosting": {
+        "revolut-furs": [
+          "revolut-furs"
+        ]
+      }
+    }
+  }
+}
