@@ -4,6 +4,7 @@ import { RevolutExport } from '../types/revolut';
 import { UploadCloud, FileText, ShieldCheck, AlertTriangle, Building2, Lock, Loader2, XCircle } from 'lucide-react';
 import { PrivacyModal, TermsModal } from './LegalModals';
 import * as Dialog from '@radix-ui/react-dialog';
+import ExportInstructions from './ExportInstructions';
 
 interface FileUploaderProps {
     onUpload: (data: RevolutExport) => void;
@@ -158,6 +159,10 @@ export default function FileUploader({ onUpload }: FileUploaderProps) {
                             Podprt format: <span className="text-white font-medium">Profit and loss statement</span>
                         </div>
                     </div>
+                </div>
+
+                <div className="flex justify-center mt-4">
+                    <ExportInstructions />
                 </div>
 
                 {error && (

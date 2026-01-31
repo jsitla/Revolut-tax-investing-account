@@ -12,22 +12,23 @@ import {
     FileDown, 
     AlertTriangle, 
     Shield, 
-    Settings, 
     TrendingUp, 
     Wallet, 
     Landmark, 
     RefreshCw,
     Download,
-    CheckCircle2
+    CheckCircle2,
+    User
 } from 'lucide-react';
 
 interface DashboardProps {
     data: RevolutExport;
     onReset: () => void;
+    initialTaxpayerConfig?: TaxpayerConfig;
 }
 
-export default function Dashboard({ data, onReset }: DashboardProps) {
-    const [taxpayerConfig, setTaxpayerConfig] = useState<TaxpayerConfig>(() => loadTaxpayerConfig());
+export default function Dashboard({ data, onReset, initialTaxpayerConfig }: DashboardProps) {
+    const [taxpayerConfig, setTaxpayerConfig] = useState<TaxpayerConfig>(() => initialTaxpayerConfig || loadTaxpayerConfig());
     
     const years = useMemo(() => {
         const tradeYears = data.trades.map(t => parseInt(t.dateSold.split('-')[0]));
@@ -35,13 +36,20 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
         return Array.from(new Set([...tradeYears, ...divYears])).sort((a, b) => b - a);
     }, [data]);
 
-    const [selectedYear, setSelectedYear] = useState<number>(years[0] || new Date().getFullYear());
+    // Default to previous year (for tax reporting), or first available year
+    const defaultYear = useMemo(() => {
+        const lastYear = new Date().getFullYear() - 1;
+        if (years.includes(lastYear)) return lastYear;
+        return years[0] || new Date().getFullYear();
+    }, [years]);
+
+    const [selectedYear, setSelectedYear] = useState<number>(defaultYear);
 
     useEffect(() => {
         if (years.length > 0 && !years.includes(selectedYear)) {
-            setSelectedYear(years[0]);
+            setSelectedYear(defaultYear);
         }
-    }, [years, selectedYear]);
+    }, [years, selectedYear, defaultYear]);
 
     const filteredData = useMemo(() => {
         return filterByYear(data, selectedYear);
@@ -225,7 +233,7 @@ export default function Dashboard({ data, onReset }: DashboardProps) {
                                 <Wallet className="w-4 h-4" /> Dividende
                             </Tabs.Trigger>
                             <Tabs.Trigger value="settings" className="relative flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all text-slate-400 hover:text-slate-200 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
-                                <Settings className="w-4 h-4" /> Nastavitve
+                                <User className="w-4 h-4" /> Podatki o zavezancu
                                 {!isTaxpayerValid && <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
                             </Tabs.Trigger>
                         </Tabs.List>
