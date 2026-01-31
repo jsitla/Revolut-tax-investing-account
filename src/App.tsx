@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import FileUploader from './components/FileUploader'
 import Dashboard from './components/Dashboard'
 import TaxpayerOnboarding from './components/TaxpayerOnboarding'
@@ -132,7 +132,21 @@ function App() {
                         </AnimatePresence>
                     </main>
 
-                </div>
+                {/* Footer */}
+                <footer className="mt-16 pb-8 text-center">
+                    <p className="text-slate-500 text-sm">
+                        Projekt podjetja{' '}
+                        <a 
+                            href="https://m-ai.info" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                        >
+                            M-AI d.o.o
+                        </a>
+                    </p>
+                </footer>
+            </div>
             </div>
             <Toast.Viewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-[390px] max-w-[100vw] m-0 list-none z-[2147483647] outline-none" />
         </Toast.Provider>
@@ -140,3 +154,4 @@ function App() {
 }
 
 export default App
+
