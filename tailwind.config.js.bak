@@ -1,0 +1,30 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: '#0B0F19', 
+        surface: '#111827',  
+        primary: '#7C3AED', 
+        'primary-glow': '#8B5CF6', 
+        secondary: '#3B82F6', 
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
+      boxShadow: {
+        'neon': '0 0 20px rgba(124, 58, 237, 0.5)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+      },
+      backgroundImage: {
+        'hero-glow': 'radial-gradient(circle at 50% -20%, rgba(124, 58, 237, 0.25), transparent 70%)',
+        'glass-gradient': 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
+      },
+    },
+  },
+  plugins: [],
+}

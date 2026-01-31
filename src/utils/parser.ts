@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { RevolutExport, RevolutTrade, RevolutDividend } from '../types/revolut';
+import { getExchangeRates, convertUsdToEur, ConversionResult } from './currency-service';
 
 interface RawRow {
     [key: string]: string;
@@ -140,5 +141,114 @@ export const filterByYear = (data: RevolutExport, year: number | string): Revolu
     return {
         trades: data.trades.filter(t => t.dateSold.startsWith(yearStr)),
         dividends: data.dividends.filter(d => d.date.startsWith(yearStr)),
+        conversionApplied: data.conversionApplied,
+        conversionErrors: data.conversionErrors,
+        missingRateDates: data.missingRateDates,
+    };
+};
+
+/**
+ * Converts all USD amounts in the export to EUR using ECB rates.
+ * Preserves original values and adds *Eur fields for FURS XML.
+ * 
+ * @param data Parsed Revolut export
+ * @returns Export with EUR-converted values
+ */
+export const convertToEur = async (data: RevolutExport): Promise<RevolutExport> => {
+    // Collect all unique dates that need conversion (non-EUR currencies only)
+    const datesToConvert: string[] = [];
+    
+    for (const trade of data.trades) {
+        if (trade.currency && trade.currency !== 'EUR') {
+            if (trade.dateAcquired) datesToConvert.push(trade.dateAcquired);
+            if (trade.dateSold) datesToConvert.push(trade.dateSold);
+        }
+    }
+    
+    for (const dividend of data.dividends) {
+        if (dividend.currency && dividend.currency !== 'EUR') {
+            if (dividend.date) datesToConvert.push(dividend.date);
+        }
+    }
+
+    // If everything is already in EUR, no conversion needed
+    if (datesToConvert.length === 0) {
+        return {
+            ...data,
+            conversionApplied: false,
+            conversionErrors: [],
+            missingRateDates: [],
+        };
+    }
+
+    // Fetch exchange rates
+    const conversionResult: ConversionResult = await getExchangeRates(datesToConvert);
+    const { rates, missingDates, errors } = conversionResult;
+
+    // Convert trades
+    const convertedTrades: RevolutTrade[] = data.trades.map(trade => {
+        if (trade.currency === 'EUR') {
+            // Already in EUR, copy values
+            return {
+                ...trade,
+                exchangeRateAcquired: 1,
+                exchangeRateSold: 1,
+                costBasisEur: trade.costBasis,
+                grossProceedsEur: trade.grossProceeds,
+                grossPnLEur: trade.grossPnL,
+            };
+        }
+
+        const rateAcquired = rates.get(trade.dateAcquired);
+        const rateSold = rates.get(trade.dateSold);
+
+        if (rateAcquired && rateSold) {
+            return {
+                ...trade,
+                exchangeRateAcquired: rateAcquired,
+                exchangeRateSold: rateSold,
+                costBasisEur: convertUsdToEur(trade.costBasis, rateAcquired),
+                grossProceedsEur: convertUsdToEur(trade.grossProceeds, rateSold),
+                grossPnLEur: convertUsdToEur(trade.grossProceeds, rateSold) - convertUsdToEur(trade.costBasis, rateAcquired),
+            };
+        }
+
+        // Rate not found - leave EUR fields undefined
+        return trade;
+    });
+
+    // Convert dividends
+    const convertedDividends: RevolutDividend[] = data.dividends.map(dividend => {
+        if (dividend.currency === 'EUR') {
+            // Already in EUR, copy values
+            return {
+                ...dividend,
+                exchangeRate: 1,
+                grossAmountEur: dividend.grossAmount,
+                withholdingTaxEur: dividend.withholdingTax,
+            };
+        }
+
+        const rate = rates.get(dividend.date);
+
+        if (rate) {
+            return {
+                ...dividend,
+                exchangeRate: rate,
+                grossAmountEur: convertUsdToEur(dividend.grossAmount, rate),
+                withholdingTaxEur: convertUsdToEur(dividend.withholdingTax, rate),
+            };
+        }
+
+        // Rate not found - leave EUR fields undefined
+        return dividend;
+    });
+
+    return {
+        trades: convertedTrades,
+        dividends: convertedDividends,
+        conversionApplied: true,
+        conversionErrors: errors,
+        missingRateDates: missingDates,
     };
 };

@@ -232,10 +232,14 @@ export const generateKDVPXml = (
     // For each trade, we need to create both a Purchase row and a Sale row
     // Since Revolut provides closed positions (already matched buy/sell pairs)
     for (const trade of securityTrades) {
+      // Use EUR values if available, otherwise fall back to original
+      const costBasisForXml = trade.costBasisEur ?? trade.costBasis;
+      const grossProceedsForXml = trade.grossProceedsEur ?? trade.grossProceeds;
+      
       // Purchase row (acquisition)
       rowId++;
       runningBalance += trade.quantity;
-      const pricePerUnitAcquired = trade.quantity > 0 ? trade.costBasis / trade.quantity : 0;
+      const pricePerUnitAcquired = trade.quantity > 0 ? costBasisForXml / trade.quantity : 0;
       
       xml += `
           <Row>
@@ -253,7 +257,7 @@ export const generateKDVPXml = (
       // Sale row (disposal)
       rowId++;
       runningBalance -= trade.quantity;
-      const pricePerUnitSold = trade.quantity > 0 ? trade.grossProceeds / trade.quantity : 0;
+      const pricePerUnitSold = trade.quantity > 0 ? grossProceedsForXml / trade.quantity : 0;
       
       xml += `
           <Row>
@@ -346,10 +350,14 @@ export const generateDivXml = (
       <PayerCountry>${countryCode}</PayerCountry>`;
     }
     
+    // Use EUR values if available, otherwise fall back to original
+    const grossAmountForXml = div.grossAmountEur ?? div.grossAmount;
+    const withholdingTaxForXml = div.withholdingTaxEur ?? div.withholdingTax;
+    
     xml += `
       <Type>1</Type>
-      <Value>${formatNum(div.grossAmount)}</Value>
-      <ForeignTax>${formatNum(div.withholdingTax)}</ForeignTax>`;
+      <Value>${formatNum(grossAmountForXml)}</Value>
+      <ForeignTax>${formatNum(withholdingTaxForXml)}</ForeignTax>`;
     
     if (countryCode) {
       xml += `

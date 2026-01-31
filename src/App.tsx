@@ -28,14 +28,6 @@ function App() {
                         )}
                     </main>
 
-                    <footer className="mt-24 text-center text-slate-500 text-sm pb-12 border-t border-slate-800/50 pt-12 max-w-lg mx-auto">
-                        <p>
-                            Narejeno z ❤️ za slovenske vlagatelje.
-                        </p>
-                        <p className="mt-4 text-xs font-mono opacity-50 uppercase tracking-widest">
-                            Vsa obdelava poteka v vašem brskalniku.
-                        </p>
-                    </footer>
                 </div>
             </div>
             <Toast.Viewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-[390px] max-w-[100vw] m-0 list-none z-[2147483647] outline-none" />
